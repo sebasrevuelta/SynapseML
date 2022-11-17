@@ -72,6 +72,10 @@ class VerifyLightGBMRanker extends Benchmarks with EstimatorFuzzing[LightGBMRank
     assertFitWithoutErrors(baseModel, rankingDF)
   }
 
+  test("Verify LightGBM Ranker on ranking dataset with repartitioning") {
+    assertFitWithoutErrors(baseModel.setRepartitionByGroupingColumn(true), rankingDF)
+  }
+
   test("Throws error when group column is not long, int or string") {
     val df = rankingDF.withColumn(queryCol, from_json(lit("{}"), StructType(Seq())))
     assertThrows[IllegalArgumentException] {
@@ -130,6 +134,25 @@ class VerifyLightGBMRanker extends Benchmarks with EstimatorFuzzing[LightGBMRank
   test("verify cardinality counts: string") {
     val counts = countCardinality(Seq("a", "a", "b", "b", "b", "c"))
     assert(counts === Seq(2, 3, 1))
+  }
+
+  test("verify with max position") {
+    val maxPosition = Array(-500, -1, 0, 1, 500)
+    maxPosition.foreach(position => {
+      assertFitWithoutErrors(baseModel.setMaxPosition(position), rankingDF)
+    })
+  }
+
+  test("verify with label gain") {
+    val labelGain = Array[Double](-2.0, -0.5, 0.0, 0.5, 2.0)
+    assertFitWithoutErrors(baseModel.setLabelGain(labelGain), rankingDF)
+  }
+
+  test("verify with barrier") {
+    val numTasks = Array(0, 1, 2)
+    numTasks.foreach(nTasks => {
+      assertFitWithoutErrors(baseModel.setNumTasks(nTasks).setUseBarrierExecutionMode(true), rankingDF)
+    })
   }
 
   override def testObjects(): Seq[TestObject[LightGBMRanker]] = {
