@@ -38,3 +38,4 @@ dependencies:
     - Pillow
     - transformers==4.15.0
     - huggingface-hub>=0.8.1
+    - pandas
