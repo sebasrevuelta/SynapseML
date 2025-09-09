@@ -47,4 +47,13 @@ RUN mkdir logs
 #hive needed for livy pyspark
 RUN wget http://central.maven.org/maven2/org/apache/spark/spark-hive_2.12/2.4.0/spark-hive_2.12-2.4.0.jar -P /opt/spark/jars
 
+# Create a non-root user and group for running Livy
+RUN addgroup --system livy && adduser --system --ingroup livy livyuser
+
+# Ensure livyuser has ownership of necessary directories
+RUN chown -R livyuser:livy /opt/spark /livy
+
+# Switch to livyuser before running the command
+USER livyuser
+
 CMD ["sh", "-c", "echo '\nspark.driver.host' $(hostname -i) >> /opt/spark/conf/spark-defaults.conf && echo '\nlivy.spark.master' $SPARK_MASTER >> /livy/conf/livy.conf && bin/livy-server"]
